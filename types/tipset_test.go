@@ -197,8 +197,8 @@ func TestTipSet(t *testing.T) {
 
 // Test methods: String, ToSortedCidSet, ToSlice, MinTicket, Height, NewTipSet, Equals
 func makeTestBlocks(t *testing.T) (*Block, *Block, *Block) {
-	b1 := block(t, []byte{1}, 1, cid1, parentWeight, "1")
-	b2 := block(t, []byte{2}, 1, cid1, parentWeight, "2")
-	b3 := block(t, []byte{3}, 1, cid1, parentWeight, "3")
+	b1 := block(t, []byte{2}, 1, cid1, parentWeight, "1")
+	b2 := block(t, []byte{3}, 1, cid1, parentWeight, "2")
+	b3 := block(t, []byte{4}, 1, cid1, parentWeight, "3")
 	return b1, b2, b3
 }
