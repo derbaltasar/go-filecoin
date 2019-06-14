@@ -4,12 +4,7 @@ import (
 	"sort"
 )
 
-type RLEPlus struct {
-	FirstBit bool
-	Runs     []uint
-}
-
-func NewRLEPlus(ints []uint) (out RLEPlus) {
+func ToBitsetRuns(ints []uint) (firstBit bool, runs []uint) {
 	if len(ints) == 0 {
 		return
 	}
@@ -20,22 +15,22 @@ func NewRLEPlus(ints []uint) (out RLEPlus) {
 	last := ints[0]
 
 	// Initialize our return value
-	out.FirstBit = last == 0
-	if !out.FirstBit {
+	firstBit = last == 0
+	if !firstBit {
 		// first run of zeroes
-		out.Runs = append(out.Runs, last)
+		runs = append(runs, last)
 	}
-	out.Runs = append(out.Runs, 1)
+	runs = append(runs, 1)
 
 	for _, cur := range ints[1:] {
 		delta := cur - last
 		switch {
 		case delta == 1:
-			out.Runs[len(out.Runs)-1]++
+			runs[len(runs)-1]++
 		case delta > 1:
 			// add run of zeroes if there is a gap
-			out.Runs = append(out.Runs, cur-last-1)
-			out.Runs = append(out.Runs, 1)
+			runs = append(runs, cur-last-1)
+			runs = append(runs, 1)
 		default:
 			// repeated number?
 		}
