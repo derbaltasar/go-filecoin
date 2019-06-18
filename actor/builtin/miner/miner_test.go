@@ -517,7 +517,3 @@ func TestGetProofsMode(t *testing.T) {
 		assert.Equal(t, types.LiveProofsMode, mode)
 	})
 }
-
-func parseAbiBoolean(bytes []byte) bool {
-	return bytes[0] == 1
-}
