@@ -253,7 +253,7 @@ var minerExports = exec.Exports{
 		Params: []abi.Type{abi.Bytes, abi.SectorID, abi.Bytes},
 		Return: []abi.Type{},
 	},
-	"getProvingPeriodStart": &exec.FunctionSignature{
+	"getProvingPeriodEnd": &exec.FunctionSignature{
 		Params: []abi.Type{},
 		Return: []abi.Type{abi.BlockHeight},
 	},
@@ -553,7 +553,7 @@ func (ma *Actor) CommitSector(ctx exec.VMContext, sectorID uint64, commD, commR,
 		state.ActiveCollateral = state.ActiveCollateral.Add(collateral)
 
 		if state.Power.Equal(types.NewBytesAmount(0)) {
-			state.ProvingPeriodEnd = ctx.BlockHeight()
+			state.ProvingPeriodEnd = ctx.BlockHeight().Add(types.NewBlockHeight(ProvingPeriodDuration(state.SectorSize)))
 		}
 		inc := state.SectorSize
 		state.Power = state.Power.Add(inc)
@@ -739,8 +739,7 @@ func (ma *Actor) SubmitPoSt(ctx exec.VMContext, poStProofs []types.PoStProof) (u
 		}
 
 		// Check if we submitted it in time
-		provingPeriodEnd := state.ProvingPeriodEnd.Add(types.NewBlockHeight(ProvingPeriodDuration(state.SectorSize)))
-		if ctx.BlockHeight().GreaterThan(provingPeriodEnd.Add(GenerationAttackTime(state.SectorSize))) {
+		if ctx.BlockHeight().GreaterThan(state.ProvingPeriodEnd.Add(GenerationAttackTime(state.SectorSize))) {
 			// Not great.
 			// TODO: charge penalty
 			return nil, errors.NewRevertErrorf("submitted PoSt late, need to pay a fee")
@@ -781,7 +780,7 @@ func (ma *Actor) SubmitPoSt(ctx exec.VMContext, poStProofs []types.PoStProof) (u
 		}
 
 		// transition to the next proving period
-		state.ProvingPeriodEnd = provingPeriodEnd
+		state.ProvingPeriodEnd = state.ProvingPeriodEnd.Add(types.NewBlockHeight(ProvingPeriodDuration(state.SectorSize)))
 		state.LastPoSt = ctx.BlockHeight()
 
 		return nil, nil
@@ -793,8 +792,8 @@ func (ma *Actor) SubmitPoSt(ctx exec.VMContext, poStProofs []types.PoStProof) (u
 	return 0, nil
 }
 
-// GetProvingPeriodStart returns the current ProvingPeriodEnd value.
-func (ma *Actor) GetProvingPeriodStart(ctx exec.VMContext) (*types.BlockHeight, uint8, error) {
+// GetProvingPeriodEnd returns the current ProvingPeriodEnd value.
+func (ma *Actor) GetProvingPeriodEnd(ctx exec.VMContext) (*types.BlockHeight, uint8, error) {
 	if err := ctx.Charge(actor.DefaultGasCost); err != nil {
 		return nil, exec.ErrInsufficientGas, errors.RevertErrorWrap(err, "Insufficient gas")
 	}

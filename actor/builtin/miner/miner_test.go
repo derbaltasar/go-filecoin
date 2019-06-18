@@ -305,11 +305,15 @@ func TestMinerCommitSector(t *testing.T) {
 		require.Equal(t, uint8(0), res.Receipt.ExitCode)
 
 		// check that the proving period matches
-		res, err = th.CreateAndApplyTestMessage(t, st, vms, minerAddr, 0, 3, "getProvingPeriodStart", nil)
+		res, err = th.CreateAndApplyTestMessage(t, st, vms, minerAddr, 0, 3, "getProvingPeriodEnd", nil)
 		require.NoError(t, err)
 		require.NoError(t, res.ExecutionError)
+
+		// provingPeriodEnd is block height plus proving period
+		provingPeriod := ProvingPeriodDuration(types.OneKiBSectorSize)
+
 		// blockheight was 3
-		require.Equal(t, types.NewBlockHeight(3), types.NewBlockHeightFromBytes(res.Receipt.Return[0]))
+		require.Equal(t, types.NewBlockHeight(3 + provingPeriod), types.NewBlockHeightFromBytes(res.Receipt.Return[0]))
 
 		// fail because commR already exists
 		res, err = th.CreateAndApplyTestMessage(t, st, vms, minerAddr, 0, 4, "commitSector", nil, uint64(1), commD, commR, commRStar, th.MakeRandomBytes(types.TwoPoRepProofPartitions.ProofLen()))
@@ -350,10 +354,10 @@ func TestMinerSubmitPoSt(t *testing.T) {
 	require.Equal(t, uint8(0), res.Receipt.ExitCode)
 
 	// check that the proving period is now the next one
-	res, err = th.CreateAndApplyTestMessage(t, st, vms, minerAddr, 0, 9, "getProvingPeriodStart", ancestors)
+	res, err = th.CreateAndApplyTestMessage(t, st, vms, minerAddr, 0, 9, "getProvingPeriodEnd", ancestors)
 	require.NoError(t, err)
 	require.NoError(t, res.ExecutionError)
-	require.Equal(t, types.NewBlockHeightFromBytes(res.Receipt.Return[0]), types.NewBlockHeight(20003))
+	require.Equal(t, types.NewBlockHeightFromBytes(res.Receipt.Return[0]), types.NewBlockHeight(40003))
 
 	// fail to submit inside the proving period (plus generation attack threshold)
 	proof = th.MakeRandomPoStProofForTest()
