@@ -812,7 +812,8 @@ func (ma *Actor) GetProvingPeriodEnd(ctx exec.VMContext) (*types.BlockHeight, ui
 }
 
 func currentProvingPeriodPoStChallengeSeed(ctx exec.VMContext, state State) (types.PoStChallengeSeed, error) {
-	bytes, err := ctx.SampleChainRandomness(state.ProvingPeriodEnd)
+	provingPeriodStart := state.ProvingPeriodEnd.Sub(types.NewBlockHeight(ProvingPeriodDuration(state.SectorSize)))
+	bytes, err := ctx.SampleChainRandomness(provingPeriodStart)
 	if err != nil {
 		return types.PoStChallengeSeed{}, err
 	}
